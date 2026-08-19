@@ -1,0 +1,10 @@
+note = input("Apna note likho: ")
+file = open("notes.txt", "a") 
+file.write(note + "\n")
+file.close()
+print("Note save ho gaya!")
+
+file = open("notes.txt", "r")
+print("\nTumhare saare notes:")
+print(file.read())
+file.close()
