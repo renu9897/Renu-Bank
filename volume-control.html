@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Hand Volume Control 🔊</title>
+<style>
+body{margin:0;background:#000;color:#fff;text-align:center;font-family:sans-serif;overflow:hidden}
+video{transform:scaleX(-1);width:100%;max-width:700px;margin-top:20px;border-radius:20px}
+#bar{width:300px;height:30px;background:#333;margin:20px auto;border-radius:20px;overflow:hidden}
+#fill{height:100%;width:0%;background:linear-gradient(90deg,#00ff88,#00aaff);transition:0.1s}
+#vol{font-size:80px;margin:10px}
+</style>
+</head>
+<body>
+<h1>🖐️ Hand Volume Control</h1>
+<div id="vol">0%</div>
+<div id="bar"><div id="fill"></div></div>
+<video id="video" autoplay playsinline></video>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script>
+const video = document.getElementById('video');
+const fill = document.getElementById('fill');
+const volText = document.getElementById('vol');
+
+const hands = new Hands({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+hands.setOptions({maxNumHands:1, modelComplexity:1, minDetectionConfidence:0.7});
+hands.onResults(results => {
+  if(results.multiHandLandmarks[0]){
+    const lm = results.multiHandLandmarks[0];
+    const dist = Math.hypot(lm[4].x - lm[8].x, lm[4].y - lm[8].y);
+    let vol = Math.min(100, Math.max(0, Math.round((dist - 0.05) * 500)));
+    fill.style.width = vol + '%';
+    volText.innerText = vol + '%';
+  }
+});
+
+const camera = new Camera(video, {onFrame: async()=>{await hands.send({image:video})}, width:700, height:500});
+camera.start();
+</script>
+</body>
+</html>
