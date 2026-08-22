@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<style>
+body{margin:0;background:black;overflow:hidden;font-family:monospace;color:#00ffcc}
+#video{position:absolute;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#canvas{position:absolute;width:100%;height:100%}
+#hud{position:absolute;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.6);padding:12px;border-radius:10px;border:1px solid #00ffcc}
+#portal{position:absolute;top:50%;left:50%;width:200px;height:200px;transform:translate(-50%,-50%);border-radius:50%;border:4px solid #00ffcc;box-shadow:0 0 30px #00ffcc,inset 0 0 30px #00ffcc}
+</style>
+</head>
+<body>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+<div id="portal"></div>
+<div id="hud">RIFT PORTAL<br>Status: <span id="status">Loading...</span><br>Hand: <span id="hand">No hand</span></div>
+<script>
+const video=document.getElementById('video'),statusEl=document.getElementById('status'),handEl=document.getElementById('hand'),portal=document.getElementById('portal'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+let hands=new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+hands.setOptions({maxNumHands:1,modelComplexity:1,minDetectionConfidence:0.7,minTrackingConfidence:0.7});
+hands.onResults((r)=>{
+canvas.width=innerWidth;canvas.height=innerHeight;ctx.clearRect(0,0,canvas.width,canvas.height);
+if(r.multiHandLandmarks&&r.multiHandLandmarks.length>0){
+let lm=r.multiHandLandmarks[0],w=lm[0],tips=[lm[8],lm[12],lm[16],lm[20]],a=0;tips.forEach(t=>a+=Math.hypot(t.x-w.x,t.y-w.y));a/=4;
+let s=50+a*800;s=Math.max(60,Math.min(350,s));portal.style.width=s+'px';portal.style.height=s+'px';handEl.innerText=a>0.2?'Khula':'Band';statusEl.innerText='OK';
+}else{handEl.innerText='No hand';}
+});
+let camera=new Camera(video,{onFrame:async()=>{await hands.send({image:video});},width:640,height:480});
+camera.start();statusEl.innerText='Camera OK';
+</script>
+</body>
+</html>
