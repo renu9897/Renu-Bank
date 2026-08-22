@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Face Login - Renu Bank</title>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<style>
+body{margin:0;background:#000;overflow:hidden;font-family:sans-serif}
+#video{display:none}
+#canvas{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#msg{position:absolute;top:20px;width:100%;text-align:center;color:#00ff88;font:700 22px sans-serif;z-index:10}
+#box{position:absolute;bottom:30px;width:100%;text-align:center;color:white;z-index:10}
+</style>
+</head><body>
+<video id="video" autoplay playsinline muted></video>
+<canvas id="canvas"></canvas>
+<div id="msg">Face dikhao - Login ke liye</div>
+<div id="box">Renu-Bank Secure Login</div>
+<script>
+const video=document.getElementById('video'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d'),msg=document.getElementById('msg');
+canvas.width=innerWidth;canvas.height=innerHeight;
+const faceDetection = new FaceDetection({locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${f}`});
+faceDetection.setOptions({model: 'short', minDetectionConfidence: 0.7});
+let loginDone=false;
+faceDetection.onResults(r=>{
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  if(r.detections.length>0 &&!loginDone){
+    let d=r.detections[0].boundingBox;
+    let x=d.xCenter*canvas.width, y=d.yCenter*canvas.height, w=d.width*canvas.width, h=d.height*canvas.height;
+    ctx.strokeStyle='#00ff88'; ctx.lineWidth=4; ctx.strokeRect(x-w/2, y-h/2, w, h);
+    msg.innerHTML="✅ Face Mila! Login ho raha hai...";
+    loginDone=true;
+    setTimeout(()=>{ window.location.href='volume-control.html'; }, 3000);
+  } else if(!loginDone){
+    msg.innerHTML="❌ No Face Detected";
+  }
+});
+(async()=>{
+  const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+  video.srcObject=s;
+  const cam=new Camera(video,{onFrame:async()=>await faceDetection.send({image:video}),width:640,height:480});
+  cam.start();
+})();
+</script></body></html>
