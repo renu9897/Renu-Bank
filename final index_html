@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<style>
+body{margin:0;background:black;overflow:hidden;font-family:monospace;color:#00ffcc}
+#video{position:absolute;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+#canvas{position:absolute;width:100%;height:100%}
+#hud{position:absolute;top:10px;left:10px;z-index:10;background:rgba(0,0,0,0.7);padding:12px;border-radius:10px;border:1px solid #00ffcc}
+#portal{position:absolute;top:50%;left:50%;width:200px;height:200px;transform:translate(-50%,-50%);border-radius:50%;border:4px solid #00ffcc;box-shadow:0 0 40px #00ffcc,inset 0 0 40px #00ffcc;transition:all 0.1s}
+</style>
+</head>
+<body>
+<video id="video" autoplay playsinline></video>
+<canvas id="canvas"></canvas>
+<div id="portal"></div>
+<div id="hud">RIFT PORTAL<br>Status: <span id="status">Loading...</span><br>Hand: <span id="hand">No hand</span></div>
+<script>
+const video=document.getElementById('video'),statusEl=document.getElementById('status'),handEl=document.getElementById('hand'),portal=document.getElementById('portal'),canvas=document.getElementById('canvas'),ctx=canvas.getContext('2d');
+let hands=new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+hands.setOptions({maxNumHands:2,modelComplexity:1,minDetectionConfidence:0.7,minTrackingConfidence:0.7});
+hands.onResults((r)=>{
+canvas.width=innerWidth;canvas.height=innerHeight;ctx.clearRect(0,0,canvas.width,canvas.height);
+if(r.multiHandLandmarks && r.multiHandLandmarks.length>0){
+let all=r.multiHandLandmarks;
+let lm=all[0],w=lm[0],tips=[lm[8],lm[12],lm[16],lm[20]],a=0;tips.forEach(t=>a+=Math.hypot(t.x-w.x,t.y-w.y));a/=4;
+let s=50+a*900;s=Math.max(60,Math.min(450,s));portal.style.width=s+'px';portal.style.height=s+'px';
+if(all.length==2){
+handEl.innerText='Dono haath - Super Mode!';
+let lm2=all[1][0];portal.style.left=(lm2.x*100)+'%';portal.style.top=(lm2.y*100)+'%';
+}else{handEl.innerText=a>0.2?'Khula (OPEN)':'Band (CLOSED)';}
+statusEl.innerText='Tracking OK - '+all.length+' hand';
+all.forEach(hl=>{hl.forEach(p=>{ctx.beginPath();ctx.arc(p.x*canvas.width,p.y*canvas.height,5,0,6.28);ctx.fillStyle='#00ffcc';ctx.fill();});});
+}else{handEl.innerText='No hand';statusEl.innerText='Dhoond raha hu...';}
+});
+async function start(){
+let stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}});
+video.srcObject=stream;
+let cam=new Camera(video,{onFrame:async()=>{await hands.send({image:video});},width:640,height:480});
+cam.start();statusEl.innerText='Camera OK';
+}
+start();
+</script>
+</body>
+</html>
