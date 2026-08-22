@@ -1,0 +1,48 @@
+# RENU BANK - Final Project (Week 4 Complete)
+# 3-in-1 Secure Login System
+
+import random
+import time
+
+print("====== Welcome to Renu Bank ======")
+
+stored_otp = "123456"
+stored_qr = "RENU_BANK_QR_2025"
+stored_face = "renu_face_123"
+
+print("\n1. OTP Login")
+print("2. QR Login")
+print("3. Face Login")
+choice = input("\nLogin type chuno (1/2/3): ")
+
+if choice == "1":
+    otp = input("OTP enter karo (Hint: 123456): ")
+    if otp == stored_otp:
+        print("✅ OTP Verified! Login Success")
+    else:
+        print("❌ Wrong OTP")
+
+elif choice == "2":
+    qr = input("QR Code scan karo (Hint: RENU_BANK_QR_2025): ")
+    if qr == stored_qr:
+        print("✅ QR Matched! Login Success")
+    else:
+        print("❌ Invalid QR")
+
+elif choice == "3":
+    print("Face scan ho raha hai...")
+    time.sleep(2)
+    print("Scanning eyes...")
+    time.sleep(1)
+    # Real project me yaha camera lagega
+    face = input("Face ID enter karo (Hint: renu_face_123): ")
+    if face == stored_face:
+        print("✅ Face Matched!")
+        print("✅ LOGIN SUCCESS - Welcome to Renu Bank")
+    else:
+        print("❌ Face Not Matched")
+
+else:
+    print("Galat choice")
+
+print("\n====== Thank You for Banking with Renu Bank ======")
